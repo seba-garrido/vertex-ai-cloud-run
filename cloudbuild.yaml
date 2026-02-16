@@ -1,0 +1,21 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build','-t','us-central1-docker.pkg.dev/$PROJECT_ID/containers/vertex-ai-cloud-run:$SHORT_SHA','.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push','us-central1-docker.pkg.dev/$PROJECT_ID/containers/vertex-ai-cloud-run:$SHORT_SHA']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      [
+        'run','deploy','vertex-ai-cloud-run',
+        '--image','us-central1-docker.pkg.dev/$PROJECT_ID/containers/vertex-ai-cloud-run:$SHORT_SHA',
+        '--region','us-central1',
+        '--platform','managed',
+        '--allow-unauthenticated',
+        '--service-account','sa-cloudrun-vertex@$PROJECT_ID.iam.gserviceaccount.com',
+        '--set-env-vars','VERTEX_PROJECT_ID=$PROJECT_ID,VERTEX_LOCATION=us-central1,VERTEX_MODEL=gemini-1.5-pro'
+      ]
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/containers/vertex-ai-cloud-run:$SHORT_SHA'
